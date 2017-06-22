@@ -28,7 +28,7 @@ class MancalaSpec extends FlatSpec with Matchers {
         assert(error == "Invalid move. Only numbers from 1 to 6 are allowed.")
       }
       case _ => {
-        fail("Game.move accepted '0' as a valid move")
+        fail("Game.move accepted '0' as a valid move.")
       }
     }
   }
@@ -39,7 +39,25 @@ class MancalaSpec extends FlatSpec with Matchers {
          assert(error == "Invalid move. Only numbers from 1 to 6 are allowed.")
       }
       case _ => {
-        fail("Game.move accepted '7' as a valid move")
+        fail("Game.move accepted '7' as a valid move.")
+      }
+    }
+  }
+
+  "Move" should "fail on an empty cell" in {
+    Game.move(Game.create(), 3) match {
+      case Left((error, _)) => {
+         fail(s"Valid move failed with error: '$error'.")
+      }
+      case Right(aGame) => {
+        Game.move(aGame, 3) match {
+          case Left((error, _)) => {
+            assert(error == "Invalid move. Cell #3 is empty.")
+          }
+          case _ => {
+            fail("Game.move accepted '3' as a valid move even though the cell is empty.")
+          }
+        }
       }
     }
   }

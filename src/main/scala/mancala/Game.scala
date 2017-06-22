@@ -31,12 +31,13 @@ object Game {
     new Game(List.fill(6){4}, 0, List.fill(6){4}, 0, Bottom)
   }
 
-  def isValidMove(aGame: Game, i: Int): Either[String,Unit] = {
+  def validateMove(aGame: Game, i: Int): Option[String] = {
     val next = aGame.next
     val top = aGame.top
     val bottom = aGame.bottom
-    if (i > 6 || i < 1) {
-      Left("Invalid move. Only numbers from 1 to 6 are allowed.")
+    val max = top.length
+    if (i > max || i < 1) {
+      Some(s"Invalid move. Only numbers from 1 to $max are allowed.")
     } else {
       val cell = next match {
         case Top => {
@@ -47,16 +48,16 @@ object Game {
         }
       }
       if (cell == 0) {
-        Left("Invalid move. Cell #$i is empty")
+        Some(s"Invalid move. Cell #$i is empty.")
       } else {
-        Right(())
+        None
       }
     }
   }
 
   def move(aGame: Game, i: Int) : Either[(String, Game), Game] = {
-    isValidMove(aGame, i) match {
-      case Left(error) => Left(error, aGame)
+    validateMove(aGame, i) match {
+      case Some(error) => Left(error, aGame)
       case _ => Right(new Game(List.fill(6){4}, 0, List(4, 4, 0, 5, 5, 5), 1, Bottom)) // Fake move
     }
   }
