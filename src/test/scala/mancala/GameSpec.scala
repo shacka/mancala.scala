@@ -16,7 +16,7 @@ class MancalaSpec extends FlatSpec with Matchers {
     assert(g.bottom == rowOf4th)
   }
 
-  "The new game object" should "empty mancalas" in {
+  "The new game object" should "have empty mancalas" in {
     val g = Game.create()
     assert(g.topMancala == 0)
     assert(g.bottomMancala == 0)
@@ -85,6 +85,29 @@ class MancalaSpec extends FlatSpec with Matchers {
     }
   }
 
+  "The move " should "only increment number of cells equal to number in i-th cell" in {
+    Game.move(Game.create(), 1) match {
+      case Right(game) => {
+        assert(game.bottom == List(0, 5, 5, 5, 5, 4))
+      }
+      case Left((error, game)) => {
+        fail(error ++ game.toString)
+      }
+    }
+  }
+
+  "The first move not reaching mancala" should "not change mancalas" in {
+    Game.move(Game.create(), 2) match {
+      case Right(game) => {
+        assert(game.topMancala == 0)
+        assert(game.bottomMancala == 0)
+      }
+      case Left((error, game)) => {
+        fail(error ++ game.toString)
+      }
+    }
+  }
+
   "The first move ending in mancala" should "change bottom row and mancala" in {
     Game.move(Game.create(), 3) match {
       case Right(game) => {
@@ -96,5 +119,4 @@ class MancalaSpec extends FlatSpec with Matchers {
       }
     }
   }
-
 }
