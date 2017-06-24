@@ -62,6 +62,17 @@ class MancalaSpec extends FlatSpec with Matchers {
     }
   }
 
+  "A move not ending in mancala" should "switch next" in {
+    Game.move(Game.create(), 2) match {
+      case Right(game) => {
+        assert(game.next == Top)
+      }
+      case Left((error, _)) => {
+        fail(error)
+      }
+    }
+  }
+
   "The first move ending in mancala" should "keep the bottom in turn" in {
     Game.move(Game.create(), 3) match {
       case Right(game) => {

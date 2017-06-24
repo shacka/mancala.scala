@@ -17,12 +17,16 @@ class Game private ( val top: List[Int]
 }
 
 
-sealed abstract class Side() {}
+sealed abstract class Side() {
+  def oposite: Side {}
+}
 case object Top extends Side() {
   override def toString: String = { "Top" }
+  override def oposite: Side = { Bottom }
 }
 case object Bottom extends Side() {
   override def toString: String = { "Bottom" }
+  override def oposite: Side = { Top }
 }
 
 
@@ -39,7 +43,7 @@ object Game {
     getStones(theGame, cell) match {
       case Left(error) => Left(error, theGame)
       case Right(stones) => {
-        val newNext = theGame.next
+        val newNext = if (endsInMancala(theGame, cell, stones)) { theGame.next } else { theGame.next.oposite }
         theGame.next match {
           case Top => {
             val newTop = updateActiveRow(theGame.top, cell, stones)
@@ -59,6 +63,12 @@ object Game {
 
       }
     }
+  }
+
+  def endsInMancala(theGame: Game, cell: Int, stones: Int): Boolean = {
+    val cycles = stones / 13
+    val tail = stones - cycles * 13
+    tail == 7 - cell
   }
 
   private[this] def getStones(theGame: Game, cell: Int): Either[String, Int] = {
