@@ -131,23 +131,34 @@ class MancalaSpec extends FlatSpec with Matchers {
     }
   }
 
-  "This random test" should "succeed" in {
-    var log = "";
-    val theGame = List(3, 6, 2, 1).foldLeft(Right(Game.create): Either[String, Game]) { (g, i) =>
-      g match {
-        case Right(game) => {
-          game.move(i)
-        }
-        case z => z
-      }
+  "Conquering" should "work" in {
+    val moves = List(6, 3, 2, 4, 4, 2, 2, 1, 6, 3, 6, 5, 3, 3, 2, 2, 6, 2, 1, 5 ,6, 5, 6, 4, 6, 2)
+    val theGame = moves.foldLeft(Right(Game.create): Either[String,Game]) { (g, i) =>
+      /* g match {
+        case Right(game) => println(game.toString)
+        case Left(error) => println(error)
+      } */
+      for {
+        game <- g
+        newGame <- game.move(i)
+      } yield newGame
     }
     theGame match {
       case Right(game) => {
-        assert(game.bottomNext == true)
+        val stones = game.board.foldLeft(0)(_ + _)
+        //println(game.toString)
+        assert(stones == 48)
+        assert(game.ended)
       }
-      case Left(error) => {
-        fail(s"Valid move failed with error: '$error'.")
-      }
+      case Left(error) => println(error)
     }
   }
 }
+
+/*
+6 3 2 4 4 2 2 1 6 3 6 5 3 3 2 2 6 2 1 5 6 5 6 4 6 2
+[ 18 ]  0   0   0   0   0   0
+    0   0   0   0   0   0   [ 29 ]
+    CONGRATULATIONS! Bottom player won!
+    [success] Total time: 135 s, completed Jul 1, 2017 1:58:44 PM
+*/
