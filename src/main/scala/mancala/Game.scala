@@ -8,7 +8,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
   val topMancala = board(lastIndex)
   val bottom = board.slice(0, size)
   val bottomMancala = board(size)
-  val ended = (List.fill(6){0} == top || List.fill(6){0} == bottom)
+  val ended = (rowOf(0) == top || rowOf(0) == bottom)
 
   def rowOf(x: Int): List[Int] = List.fill(size){ x }
 
@@ -52,7 +52,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     else None
   }
 
-  def updateConquer(board: List[Int], index: Int): List[Int] = {
+  def reflectConquer(board: List[Int], index: Int): List[Int] = {
     val opositeIndex = size * 2 - index
     val opositeStones = board(opositeIndex)
     val topIndex = opositeIndex - size - 1
@@ -62,7 +62,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     bottom ++ top
   }
 
-  def updateMove(board: List[Int], cell: Int, stones: Int): List[Int] = {
+  def reflectMove(board: List[Int], cell: Int, stones: Int): List[Int] = {
     val (cycles, tail) = cyclesAndTail(stones)
     board.zipWithIndex.map {
       case (stonesInCell, cellIndex) => {
@@ -87,10 +87,10 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
 
   def updateBoard(cell: Int, stones: Int): List[Int] = {
     val activeBoard = if (bottomNext) board else turnBoard(board)
-    val updatedBoard = updateMove(activeBoard, cell, stones)
+    val updatedBoard = reflectMove(activeBoard, cell, stones)
     val conqueredBoard = conquering(cell, stones) match {
       case Some(index) => {
-        updateConquer(updatedBoard, index)
+        reflectConquer(updatedBoard, index)
       }
       case None => updatedBoard
     }
@@ -115,7 +115,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
             if (game.ended) {
               val topScore = game.topMancala + game.top.fold(0)(_ + _)
               val bottomScore = game.bottomMancala + game.bottom.fold(0)(_ + _)
-              Right(new Game(List.fill(size){0} ++ List(bottomScore) ++ List.fill(size){0} ++ List(topScore), cell :: moves, bottomNext))
+              Right(new Game(rowOf(0) ++ List(bottomScore) ++ rowOf(0) ++ List(topScore), cell :: moves, bottomNext))
             } else {
               Right(game)
             }
