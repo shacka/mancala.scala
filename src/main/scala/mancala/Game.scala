@@ -3,7 +3,7 @@ package mancala
 
 class Game private (val board: List[Int], val moves: List[Int], val bottomNext: Boolean) {
   val size = board.length / 2 - 1
-  val lastIndex = size * 2 + 1
+  private[this] val lastIndex = size * 2 + 1
   val top = board.slice(size + 1, lastIndex)
   val topMancala = board(lastIndex)
   val bottom = board.slice(0, size)
@@ -29,6 +29,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     else Right(if (bottomNext) bottom(cell - 1) else top(cell - 1))
   }
 
+  // TODO: weird helper method. Can we get rid of it?
   private[this] def cyclesAndTail(stones: Int): (Int, Int) = {
     val cycles = stones / lastIndex
     val tail = stones - cycles * lastIndex
@@ -37,11 +38,9 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
 
   private[this] def conquering(cell: Int, stones: Int): Option[Int] = {
     val activeSide = if (bottomNext) bottom else top
-    val (cycles, tail) = cyclesAndTail(stones)
+    val (_, tail) = cyclesAndTail(stones)
     val cellIndex = cell - 1
     val distToM = size - cellIndex
-
-
     val index = if (tail < distToM) {
       cellIndex + tail
     } else if (tail > size + 1 + distToM) {
@@ -57,7 +56,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     val opositeIndex = size * 2 - index
     val opositeStones = board(opositeIndex)
     val topIndex = opositeIndex - size - 1
-    val bottomM = board(size) + 1 + opositeStones
+    val bottomM = board(size) + opositeStones + 1
     val bottom = board.slice(0, size).updated(index, 0) ++ List(bottomM)
     val top = board.slice(size + 1, lastIndex + 1).updated(topIndex, 0)
     bottom ++ top
