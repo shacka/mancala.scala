@@ -8,9 +8,10 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
   val topMancala = board(lastIndex)
   val bottom = board.slice(0, size)
   val bottomMancala = board(size)
-  val ended = (rowOf(0) == top || rowOf(0) == bottom)
 
-  def rowOf(x: Int): List[Int] = List.fill(size){ x }
+  def ended = top == rowOf(0) || bottom == rowOf(0)
+
+  private[this] def rowOf(x: Int): List[Int] = List.fill(size){ x }
 
   override def toString: String = {
     val movesRow = moves.reverse.mkString(" ")
@@ -19,7 +20,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     s"$movesRow\n[ $topMancala ]\t$topRow\n\t$bottomRow\t[ $bottomMancala ]"
   }
 
-  def turnBoard(b: List[Int]): List[Int] = {
+  private[this] def turnBoard(b: List[Int]): List[Int] = {
     b.slice(size + 1, lastIndex + 1) ++ b.slice(0, size + 1)
   }
 
@@ -28,13 +29,13 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     else Right(if (bottomNext) bottom(cell - 1) else top(cell - 1))
   }
 
-  def cyclesAndTail(stones: Int): (Int, Int) = {
+  private[this] def cyclesAndTail(stones: Int): (Int, Int) = {
     val cycles = stones / lastIndex
     val tail = stones - cycles * lastIndex
     (cycles, tail)
   }
 
-  def conquering(cell: Int, stones: Int): Option[Int] = {
+  private[this] def conquering(cell: Int, stones: Int): Option[Int] = {
     val activeSide = if (bottomNext) bottom else top
     val (cycles, tail) = cyclesAndTail(stones)
     val cellIndex = cell - 1
@@ -52,7 +53,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     else None
   }
 
-  def reflectConquer(board: List[Int], index: Int): List[Int] = {
+  private[this] def reflectConquer(board: List[Int], index: Int): List[Int] = {
     val opositeIndex = size * 2 - index
     val opositeStones = board(opositeIndex)
     val topIndex = opositeIndex - size - 1
@@ -62,7 +63,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     bottom ++ top
   }
 
-  def reflectMove(board: List[Int], cell: Int, stones: Int): List[Int] = {
+  private[this] def reflectMove(board: List[Int], cell: Int, stones: Int): List[Int] = {
     val (cycles, tail) = cyclesAndTail(stones)
     board.zipWithIndex.map {
       case (stonesInCell, cellIndex) => {
@@ -85,7 +86,7 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     }
   }
 
-  def updateBoard(cell: Int, stones: Int): List[Int] = {
+  private[this] def updateBoard(cell: Int, stones: Int): List[Int] = {
     val activeBoard = if (bottomNext) board else turnBoard(board)
     val updatedBoard = reflectMove(activeBoard, cell, stones)
     val conqueredBoard = conquering(cell, stones) match {
@@ -97,31 +98,34 @@ class Game private (val board: List[Int], val moves: List[Int], val bottomNext: 
     if (bottomNext) conqueredBoard else turnBoard(conqueredBoard)
   }
 
-  def endsInMancala(cell: Int, stones: Int): Boolean = {
+  private[this] def endsInMancala(cell: Int, stones: Int): Boolean = {
     val (_, tail) = cyclesAndTail(stones)
     tail == size + 1 - cell
   }
 
-  def move(cell: Int): Either[String, Game] = {
-    getStones(cell) match {
-      case Left(error) => Left(error)
-      case Right(stones) => {
-          if (stones == 0) {
-            Left(s"Invalid move. Cell #$cell is empty.")
-          } else {
-            val newBoard = updateBoard(cell, stones)
-            val newBottomNext = if (endsInMancala(cell, stones)) bottomNext else !bottomNext
-            val game = new Game(newBoard, cell :: moves, newBottomNext)
-            if (game.ended) {
-              val topScore = game.topMancala + game.top.fold(0)(_ + _)
-              val bottomScore = game.bottomMancala + game.bottom.fold(0)(_ + _)
-              Right(new Game(rowOf(0) ++ List(bottomScore) ++ rowOf(0) ++ List(topScore), cell :: moves, bottomNext))
-            } else {
-              Right(game)
-            }
-          }
+  private[this] def movedGame(cell: Int, stones: Int): Either[String, Game] = {
+    if (stones == 0) {
+      Left(s"Invalid move. Cell #$cell is empty.")
+    } else {
+      val newBoard = updateBoard(cell, stones)
+      val newBottomNext = if (endsInMancala(cell, stones)) bottomNext else !bottomNext
+      val newMoves = cell :: moves
+      val game = new Game(newBoard, newMoves, newBottomNext)
+      if (game.ended) {
+        val topScore = game.topMancala + game.top.fold(0)(_ + _)
+        val bottomScore = game.bottomMancala + game.bottom.fold(0)(_ + _)
+        Right(new Game(rowOf(0) ++ List(bottomScore) ++ rowOf(0) ++ List(topScore), newMoves, bottomNext))
+      } else {
+        Right(game)
       }
     }
+  }
+
+  def move(cell: Int): Either[String, Game] = {
+    for {
+      stones <- getStones(cell)
+      game <- movedGame(cell, stones)
+    } yield game
   }
 }
 
