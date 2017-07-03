@@ -1,7 +1,7 @@
 package mancala
 
-object MancalaMainLoop extends App { args: Array[String] =>
-  override def main(args: Array[String]): Unit = {
+object MancalaMainLoop {
+  def main(args: Array[String]): Unit = {
     val moves = args.map({ x => x.toInt })
     if (moves.length > 0) processMoves(moves) else interactiveGame(Game.create)
   }

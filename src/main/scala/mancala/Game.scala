@@ -2,14 +2,14 @@ package mancala
 
 
 class Game private (val board: List[Int], val moves: List[Int], val bottomNext: Boolean) {
-  val size = board.length / 2 - 1
-  private[this] val lastIndex = size * 2 + 1
-  val top = board.slice(size + 1, lastIndex)
-  val topMancala = board(lastIndex)
-  val bottom = board.slice(0, size)
-  val bottomMancala = board(size)
+  lazy val size = board.length / 2 - 1
+  private[this] lazy val lastIndex = size * 2 + 1
+  lazy val top = board.slice(size + 1, lastIndex)
+  lazy val topMancala = board(lastIndex)
+  lazy val bottom = board.slice(0, size)
+  lazy val bottomMancala = board(size)
 
-  def ended = top == rowOf(0) || bottom == rowOf(0)
+  lazy val ended = top == rowOf(0) || bottom == rowOf(0)
 
   override def toString: String = {
     val movesRow = moves.reverse.mkString(" ")
